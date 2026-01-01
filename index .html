@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Daily Algebra Trainer (Year 11–12)</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f2f2f2;
+      padding: 20px;
+      max-width: 900px;
+      margin: auto;
+    }
+    h1 { text-align: center; }
+    .controls, .stats {
+      background: white;
+      padding: 15px;
+      margin-bottom: 15px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .problem {
+      background: white;
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 6px;
+    }
+    .answer {
+      display: none;
+      margin-top: 6px;
+      color: #2e7d32;
+    }
+    button {
+      padding: 8px 12px;
+      margin-top: 10px;
+      cursor: pointer;
+    }
+    select, input[type=range] {
+      width: 100%;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Daily Algebra Trainer</h1>
+
+<div class="controls">
+  <label><b>Difficulty</b> (1 = easy, 3 = hard)</label>
+  <input type="range" min="1" max="3" value="2" id="difficulty">
+
+  <label><b>Topic</b></label>
+  <select id="topic">
+    <option value="all">All Topics</option>
+    <option value="linear">Linear Equations</option>
+    <option value="quadratic">Quadratics</option>
+    <option value="simultaneous">Simultaneous Equations</option>
+    <option value="simplify">Algebraic Simplification</option>
+  </select>
+
+  <button onclick="startSession()">Start Today’s Session</button>
+</div>
+
+<div class="stats">
+  <p><b>Timer:</b> <span id="timer">00:00</span></p>
+  <p><b>Daily Streak:</b> <span id="streak">0</span> 🔥</p>
+</div>
+
+<div id="problems"></div>
+
+<script>
+const MAX_PER_DAY = 100;
+let timerInterval;
+let seconds = 0;
+
+function todayKey() {
+  const d = new Date();
+  return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+}
+
+function randomInt(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function generateProblem(diff, topic) {
+  let q = "", a = "", s = "";
+
+  // If "all", randomly pick a topic
+  const topics = ['linear','quadratic','simultaneous','simplify'];
+  const chosen = topic === 'all' ? topics[randomInt(0, topics.length-1)] : topic;
+
+  if (chosen === 'linear') {
+    const A = randomInt(diff, diff * 6);
+    const B = randomInt(-15 * diff, 15 * diff);
+    const C = randomInt(-15 * diff, 15 * diff);
+    q = `Solve for x: ${A}x + ${B} = ${C}`;
+    const x = (C - B) / A;
+    a = `x = ${x}`;
+    s = `Rearrange to isolate x, then divide by ${A}.`;
+    return {q,a,s};
+  }
+
+  if (chosen === 'quadratic') {
+    const a1 = randomInt(1, diff * 3);
+    const r1 = randomInt(-5 * diff, 5 * diff);
+    const r2 = randomInt(-5 * diff, 5 * diff);
+    const b1 = -a1 * (r1 + r2);
+    const c1 = a1 * r1 * r2;
+    q = `Solve: ${a1}x² ${b1 >= 0 ? '+' : '-'} ${Math.abs(b1)}x ${c1 >= 0 ? '+' : '-'} ${Math.abs(c1)} = 0`;
+    a = `x = ${r1}, ${r2}`;
+    s = `Factorise or use the quadratic formula.`;
+    return {q,a,s};
+  }
+
+  if (chosen === 'simultaneous') {
+    const x = randomInt(-5 * diff, 5 * diff);
+    const y = randomInt(-5 * diff, 5 * diff);
+    const a1 = randomInt(1, 4 * diff);
+    const b1 = randomInt(1, 4 * diff);
+    const a2 = randomInt(1, 4 * diff);
+    const b2 = randomInt(1, 4 * diff);
+    const c1 = a1 * x + b1 * y;
+    const c2 = a2 * x + b2 * y;
+    q = `Solve simultaneously: ${a1}x + ${b1}y = ${c1}, ${a2}x + ${b2}y = ${c2}`;
+    a = `x = ${x}, y = ${y}`;
+    s = `Use elimination or substitution.`;
+    return {q,a,s};
+  }
+
+  if (chosen === 'simplify') {
+    const a1 = randomInt(1, 5 * diff);
+    const b1 = randomInt(1, 5 * diff);
+    const c1 = randomInt(1, 5 * diff);
+    q = `Simplify: (${a1}x²y)/(${b1}xy)`;
+    a = `${a1/b1}x`;
+    s = `Cancel common factors in numerator and denominator.`;
+    return {q,a,s};
+  }
+}
+
+  if (topic === 'quadratic') {
+    const a1 = randomInt(1, diff * 2);
+    const b1 = randomInt(-6, 6);
+    const c1 = randomInt(-6, 6);
+    q = `Solve: ${a1}x² + ${b1}x + ${c1} = 0`;
+    a = `Use factorisation or quadratic formula.`;
+    s = `Identify a, b, c and apply the quadratic formula.`;
+    return {q,a,s};
+  }
+
+  if (topic === 'simultaneous') {
+    const a1 = randomInt(1, 5);
+    const b1 = randomInt(1, 5);
+    const c1 = randomInt(5, 20);
+    const a2 = randomInt(1, 5);
+    const b2 = randomInt(1, 5);
+    const c2 = randomInt(5, 20);
+    q = `Solve simultaneously: ${a1}x + ${b1}y = ${c1}, ${a2}x + ${b2}y = ${c2}`;
+    a = `Solve using elimination or substitution.`;
+    s = `Align coefficients, eliminate one variable, then solve.`;
+    return {q,a,s};
+  }
+
+  if (topic === 'simplify') {
+    const n = randomInt(1, 9);
+    const d = randomInt(1, 9);
+    q = `Simplify: (${n}x²)/(${d}x)`;
+    a = `${n/d}x`;
+    s = `Cancel common factors of x.`;
+    return {q,a,s};
+  }
+}
+
+function startTimer() {
+  clearInterval(timerInterval);
+  seconds = 0;
+  timerInterval = setInterval(() => {
+    seconds++;
+    const m = String(Math.floor(seconds / 60)).padStart(2,'0');
+    const s = String(seconds % 60).padStart(2,'0');
+    document.getElementById('timer').textContent = `${m}:${s}`;
+  }, 1000);
+}
+
+function updateStreak() {
+  const last = localStorage.getItem('lastDone');
+  const today = todayKey();
+  let streak = Number(localStorage.getItem('streak') || 0);
+
+  if (last !== today) {
+    streak++;
+    localStorage.setItem('streak', streak);
+    localStorage.setItem('lastDone', today);
+  }
+
+  document.getElementById('streak').textContent = streak;
+}
+
+function startSession() {
+  startTimer();
+  updateStreak();
+
+  const diff = Number(document.getElementById('difficulty').value);
+  const topic = document.getElementById('topic').value;
+
+  const container = document.getElementById('problems');
+  container.innerHTML = '';
+
+  for (let i = 0; i < MAX_PER_DAY; i++) {
+    const p = generateProblem(diff, topic);
+    const div = document.createElement('div');
+    div.className = 'problem';
+    div.innerHTML = `<b>${i+1}. ${p.q}</b><br><button>Show Answer</button><div class='answer'><b>Answer:</b> ${p.a}<br><b>Solution:</b> ${p.s}</div>`;
+    div.querySelector('button').onclick = () => {
+      const ans = div.querySelector('.answer');
+      ans.style.display = ans.style.display === 'none' ? 'block' : 'none';
+    };
+    container.appendChild(div);
+  }
+}
+</script>
+
+</body>
+</html>
