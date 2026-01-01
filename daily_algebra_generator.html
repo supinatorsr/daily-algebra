@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Daily Algebra Trainer — Minimal</title>
+  <meta name="description" content="100 algebra problems per day — Year 11–12. Difficulty, topics, answers, timer, streak." />
+  <style>
+    :root{
+      --bg:#0f1724; /* deep navy */
+      --card:#0b1220;
+      --muted:#9aa7bf;
+      --accent:#7dd3fc; /* pale cyan */
+      --glass: rgba(255,255,255,0.03);
+      --radius:14px;
+      --max-width:980px;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    }
+    html,body{height:100%;margin:0;background:linear-gradient(180deg,var(--bg) 0%, #071025 100%);color:#e6eef8}
+    .wrap{max-width:var(--max-width);margin:28px auto;padding:28px;border-radius:18px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));box-shadow:0 6px 30px rgba(2,6,23,0.6)}
+    header{display:flex;align-items:center;justify-content:space-between;gap:16px}
+    .title{display:flex;flex-direction:column}
+    h1{margin:0;font-weight:600;font-size:20px;letter-spacing:-0.2px}
+    p.lead{margin:4px 0 0;color:var(--muted);font-size:13px}
+
+    .controls{display:grid;grid-template-columns:1fr 220px;gap:16px;margin-top:20px}
+    .panel{background:var(--card);padding:14px;border-radius:12px;box-shadow:inset 0 1px 0 rgba(255,255,255,0.02)}
+
+    .row{display:flex;gap:10px;align-items:center}
+    label{font-size:13px;color:var(--muted)}
+    select,input[type=range]{width:100%;background:transparent;color:inherit;border:none;outline:none}
+
+    button.primary{background:linear-gradient(90deg,var(--accent), #60a5fa);color:#04233d;border:none;padding:10px 14px;border-radius:10px;font-weight:600;cursor:pointer}
+    button.ghost{background:transparent;border:1px solid rgba(255,255,255,0.04);padding:8px 10px;border-radius:10px;color:var(--muted);cursor:pointer}
+
+    .meta{display:flex;gap:14px;align-items:center}
+    .chip{background:var(--glass);padding:8px 10px;border-radius:10px;font-size:13px;color:var(--muted)}
+
+    #problems{margin-top:18px;display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px}
+    .card{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,0.02)}
+    .q{font-size:15px;margin:0 0 8px;font-weight:600}
+    .metaRow{display:flex;justify-content:space-between;align-items:center;color:var(--muted);font-size:13px}
+    .answer{margin-top:8px;padding-top:8px;border-top:1px dashed rgba(255,255,255,0.03);color:#c8f0ff;display:none}
+
+    .controls-bottom{display:flex;gap:8px;align-items:center;justify-content:flex-end;margin-top:12px}
+
+    .small{font-size:12px;color:var(--muted)}
+
+    footer{margin-top:20px;text-align:center;color:var(--muted);font-size:12px}
+
+    @media (max-width:720px){.controls{grid-template-columns:1fr;}.panel{padding:12px}}
+
+    /* subtle focus styles */
+    button:focus,select:focus,input:focus{outline:2px solid rgba(125,211,252,0.12);outline-offset:2px}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="title">
+        <h1>Daily Algebra Trainer</h1>
+        <p class="lead">100 problems/day • Year 11–12 range • Minimal, fast, exam-friendly</p>
+      </div>
+      <div class="meta">
+        <div class="chip" id="timer">⏱ 00:00</div>
+        <div class="chip" id="streak">🔥 Streak: 0</div>
+      </div>
+    </header>
+
+    <div class="controls" style="margin-top:18px">
+      <div class="panel">
+        <div style="display:flex;gap:12px;align-items:center;margin-bottom:10px">
+          <div style="flex:1">
+            <label>Topic</label>
+            <select id="topic">
+              <option value="all">All topics (mixed)</option>
+              <option value="linear">Linear equations</option>
+              <option value="quadratic">Quadratics</option>
+              <option value="simultaneous">Simultaneous equations</option>
+              <option value="simplify">Algebraic simplification</option>
+            </select>
+          </div>
+          <div style="width:120px">
+            <label>Difficulty</label>
+            <select id="difficulty">
+              <option value="1">1 — Easy</option>
+              <option value="2" selected>2 — Standard</option>
+              <option value="3">3 — Hard</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:8px;align-items:center;justify-content:space-between">
+          <div class="small">Each session generates 100 unique questions for the day and saves them locally.</div>
+          <div>
+            <button class="primary" id="startBtn">Start session</button>
+            <button class="ghost" id="regenBtn" title="Force regenerate today’s set">Regenerate</button>
+          </div>
+        </div>
+
+        <div class="controls-bottom" style="margin-top:12px">
+          <label class="small" style="flex:1">Show answers:</label>
+          <button class="ghost" id="toggleAll">Show all</button>
+        </div>
+      </div>
+
+      <div class="panel" style="display:flex;flex-direction:column;gap:12px;align-self:start">
+        <div>
+          <label>Progress</label>
+          <div style="display:flex;gap:8px;margin-top:8px">
+            <div class="chip" id="answered">Answered: 0</div>
+            <div class="chip" id="remaining">Remaining: 100</div>
+          </div>
+        </div>
+
+        <div>
+          <label>Session options</label>
+          <div style="display:flex;flex-direction:column;gap:8px;margin-top:8px">
+            <button class="ghost" id="downloadBtn">Download JSON</button>
+            <div class="small">Tip: Host on GitHub Pages to share. Refresh won't regenerate if same day & settings.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <main id="problems" aria-live="polite"></main>
+
+    <footer>Version 2 — UI refreshed • <span class="small">Made minimal and mobile-friendly</span></footer>
+  </div>
+
+<script>
+function randomInt(min,max){return Math.floor(Math.random()*(max-min+1))+min}
+function todayKey(){const d=new Date();return `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`}
+
+function updateStreak(){const last=localStorage.getItem('lastDone-v2');const today=todayKey();const yd=new Date();yd.setDate(yd.getDate()-1);const yesterday=`${yd.getFullYear()}-${yd.getMonth()+1}-${yd.getDate()}`;let streak=Number(localStorage.getItem('streak-v2')||0);if(last===today){}else if(last===yesterday){streak++}else{streak=1}localStorage.setItem('streak-v2',streak);localStorage.setItem('lastDone-v2',today);document.getElementById('streak').textContent=`🔥 Streak: ${streak}`}
+
+let timerInterval=null,seconds=0;
+function startTimer(){clearInterval(timerInterval);seconds=0;document.getElementById('timer').textContent='⏱ 00:00';timerInterval=setInterval(()=>{seconds++;const m=String(Math.floor(seconds/60)).padStart(2,'0');const s=String(seconds%60).padStart(2,'0');document.getElementById('timer').textContent=`⏱ ${m}:${s}`},1000)}
+
+function generateProblemObject(diff,topic){const topics=['linear','quadratic','simultaneous','simplify'];const chosen=topic==='all'?topics[randomInt(0,topics.length-1)]:topic;
+ if(chosen==='linear'){const A=randomInt(1,diff*8);const B=randomInt(-20*diff,20*diff);const x=randomInt(-12*diff,12*diff);const C=A*x+B;return{q:`Solve for x: ${A}x ${B>=0?'+':''}${B} = ${C}`,a:`x = ${x}`,s:`Rearrange and divide by ${A}.`,topic:'Linear'}}
+ if(chosen==='quadratic'){const scale=diff===1?1:diff===2?2:3;const a=randomInt(1,scale);const r1=randomInt(-8*scale,8*scale);const r2=randomInt(-8*scale,8*scale);const b=-a*(r1+r2);const c=a*r1*r2;return{q:`Solve: ${a}x² ${b>=0?'+':''}${b}x ${c>=0?'+':''}${c} = 0`,a:`x = ${r1}, ${r2}`,s:`Factorise or use the quadratic formula.`,topic:'Quadratic'}}
+ if(chosen==='simultaneous'){const scale=diff===1?1:diff===2?2:3;const x=randomInt(-8*scale,8*scale);const y=randomInt(-8*scale,8*scale);const a1=randomInt(1,3*scale);const b1=randomInt(1,3*scale);const a2=randomInt(1,3*scale);const b2=randomInt(1,3*scale);const c1=a1*x+b1*y;const c2=a2*x+b2*y;return{q:`Solve simultaneously: ${a1}x + ${b1}y = ${c1}, ${a2}x + ${b2}y = ${c2}`,a:`x = ${x}, y = ${y}`,s:`Eliminate one variable then solve.`,topic:'Simultaneous'}}
+ if(chosen==='simplify'){const scale=diff===1?1:diff===2?2:3;const n=randomInt(1,6*scale);const m=randomInt(1,6*scale);return{q:`Simplify: (${n}x²y)/(${m}xy)`,a:`${n/m}x`,s:`Cancel common factors.`,topic:'Simplify'}}}
+
+const MAX=100;
+function storageKey(diff,topic){return`dailyProblems-v2-${todayKey()}-${diff}-${topic}`}
+function loadOrGenerate(diff,topic,force=false){const key=storageKey(diff,topic);const ex=localStorage.getItem(key);if(ex&&!force)return JSON.parse(ex);const arr=[];for(let i=0;i<MAX;i++)arr.push(generateProblemObject(diff,topic));localStorage.setItem(key,JSON.stringify(arr));return arr}
+
+function renderProblems(arr){const c=document.getElementById('problems');c.innerHTML='';arr.forEach((p,i)=>{const card=document.createElement('article');card.className='card';card.innerHTML=`<div class="q"><strong>${i+1}.</strong> ${p.q}</div><div class="metaRow"><div class="small">${p.topic}</div><div class="small">Difficulty: ${document.getElementById('difficulty').value}</div></div><div class="answer"><div><strong>Answer:</strong> ${p.a}</div><div class="small">${p.s}</div></div>`;const btn=document.createElement('button');btn.className='ghost';btn.textContent='Show answer';btn.onclick=()=>{const a=card.querySelector('.answer');if(a.style.display==='block'){a.style.display='none';btn.textContent='Show answer'}else{a.style.display='block';btn.textContent='Hide answer'}};card.appendChild(btn);c.appendChild(card)});document.getElementById('remaining').textContent=`Remaining: ${arr.length}`}
+
+document.getElementById('startBtn').onclick=()=>{const t=document.getElementById('topic').value;const d=Number(document.getElementById('difficulty').value);const arr=loadOrGenerate(d,t);renderProblems(arr);startTimer();updateStreak()}
+document.getElementById('regenBtn').onclick=()=>{const t=document.getElementById('topic').value;const d=Number(document.getElementById('difficulty').value);const arr=loadOrGenerate(d,t,true);renderProblems(arr);startTimer();updateStreak()}
+
+let allShown=false;document.getElementById('toggleAll').onclick=()=>{allShown=!allShown;document.getElementById('toggleAll').textContent=allShown?'Hide all':'Show all';document.querySelectorAll('.card').forEach(c=>{const a=c.querySelector('.answer');a.style.display=allShown?'block':'none';c.querySelector('button').textContent=allShown?'Hide answer':'Show answer'})}
+
+document.getElementById('downloadBtn').onclick=()=>{const t=document.getElementById('topic').value;const d=Number(document.getElementById('difficulty').value);const key=storageKey(d,t);const data=localStorage.getItem(key)||'[]';const blob=new Blob([data],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=`problems-${todayKey()}-${t}-d${d}.json`;a.click();URL.revokeObjectURL(url)}
+
+(function init(){const d=Number(document.getElementById('difficulty').value);const t=document.getElementById('topic').value;const arr=loadOrGenerate(d,t,false);renderProblems(arr);const s=Number(localStorage.getItem('streak-v2')||0);document.getElementById('streak').textContent=`🔥 Streak: ${s}`})()
+</script>
+</body>
+</html>
